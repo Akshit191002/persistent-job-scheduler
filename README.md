@@ -21,6 +21,20 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Learning Objectives (Job Scheduler)
+
+- Learn how to use a job scheduler with `setTimeout` and `setInterval`.
+- Understand how to integrate Node.js with **PostgreSQL**.
+- Design a jobs table to store:
+  - Job type (task name)
+  - Status (`pending`, `completed`, `failed`)
+  - Scheduled run time
+- Handle server crashes by recovering and running pending jobs on restart.
+- Implement retry logic:  
+  - If a job fails more than **5 times**, mark it as **failed**.
+  - Perform a **soft delete** on related user data when a job is permanently failed.
+
+
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
