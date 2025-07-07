@@ -31,7 +31,7 @@ export class SignupService {
       type: 'accountCreatedEmail',
       parameters: { user_id: user.id, email: user.email },
       schedule: '* * * * *',
-      is_recurring: false,
+      is_recurring: true,
       created_at: new Date(),
     });
     try {

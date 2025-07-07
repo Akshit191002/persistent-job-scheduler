@@ -27,6 +27,8 @@
     "@nestjs/schedule": "^6.0.0",
     "class-validator": "^0.14.2",
     "config": "^4.0.0",
+    "cron": "^4.3.1",
+    "cron-parser": "^5.3.0",
     "nodemailer": "^7.0.4",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",

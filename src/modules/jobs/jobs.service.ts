@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DbService } from 'src/config/db.service';
-import { SchedulerService } from '../scheduler/scheduler.service';
 import { CreateJobDto } from './dto/createJob.dto';
 import { EmailService } from '../email/email.service';
 
@@ -32,9 +31,10 @@ export class JobService {
             "UPDATE jobs SET status = $1, updated_at = $2, last_run = $2 WHERE id = $3 RETURNING *",
             [status, new Date(), id]
         );
-        if (!job) {
+        if (job.rows.length === 0) {
             throw new NotFoundException(`Job with ID ${id} not found`);
         }
+
         return job.rows[0];
     }
 
@@ -56,34 +56,30 @@ export class JobService {
     async getDueJobs(): Promise<any[]> {
         const now = new Date();
         const jobs = await this.db.query(
-            `SELECT * FROM jobs
-             WHERE status = 'pending' AND created_at <= $1
-             ORDER BY created_at ASC
-             FOR UPDATE SKIP LOCKED LIMIT 5`,
-            [now],
+            `UPDATE jobs 
+            SET locked_at = $1, status = 'processing', updated_at = $1 
+            WHERE id IN (
+            SELECT id
+            FROM jobs
+            WHERE status = 'pending' AND created_at <= $1 AND locked_at IS NULL
+            ORDER BY created_at ASC )
+            RETURNING *`, [now]
         );
         return jobs.rows;
     }
 
     async processJob(job: any): Promise<void> {
         console.log(`Processing job ${job.id} of type ${job.type}`);
-        if (job.type === 'accountCreatedEmail') {
-            // sending an email
-            await this.emailService.sendEmail(job.parameters.email);
-            console.log(`Sending email to ${job.parameters.email}`);
+        try {
+            if (job.type === 'accountCreatedEmail') {
+                await this.emailService.sendEmail(job.parameters.email);
+                console.log(`Email sent to ${job.parameters.email}`);
+            }
+        } catch (error) {
+            console.error(`Failed to process job ${job.id}:`, error);
+            await this.retryJob(job);
         }
-    }
 
-    async updateRecurring(id: number, cronExpr: string): Promise<void> {
-        const interval = cronParser.parseExpression(cronExpr);
-        const nextRun = interval.next().toDate();
-
-        await this.db.query(
-            `UPDATE jobs
-     SET status = $1, last_run = NOW(), next_run = $2, updated_at = NOW()
-     WHERE id = $3`,
-            ['pending', nextRun, id]
-        );
     }
 
 }
