@@ -74,4 +74,16 @@ export class JobService {
         }
     }
 
+    async updateRecurring(id: number, cronExpr: string): Promise<void> {
+        const interval = cronParser.parseExpression(cronExpr);
+        const nextRun = interval.next().toDate();
+
+        await this.db.query(
+            `UPDATE jobs
+     SET status = $1, last_run = NOW(), next_run = $2, updated_at = NOW()
+     WHERE id = $3`,
+            ['pending', nextRun, id]
+        );
+    }
+
 }

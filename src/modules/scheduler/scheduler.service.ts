@@ -15,8 +15,7 @@ export class SchedulerService {
     for (const job of jobs) {
       try {
         if( job.is_recurring == true) {
-          await this.jobService.processJob(job);
-          await this.jobService.update(job.id, 'pending');
+          await this.jobService.updateRecurring(job.id, job.schedule)
         }
         else {
           await this.jobService.processJob(job);
